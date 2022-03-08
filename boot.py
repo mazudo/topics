@@ -80,8 +80,24 @@ def blink(delay, iterations):
         pin.on()  # led off
         time.sleep_ms(delay)
 
+def deep_sleep(delay_ms):
+    rtc = machine.RTC()
+    rtc.irq(trigger=rtc.ALARM0, wake=machine.DEEPSLEEP)
+
+    # set RTC.ALARM0 to fire after 10 seconds (waking the device)
+    rtc.alarm(rtc.ALARM0, delay_ms)
+
+    # put the device to sleep
+    machine.deepsleep()
 
 
 
+# print out reset cause
+if machine.reset_cause() == machine.DEEPSLEEP_RESET:
+    print('woke from a deep sleep')
+else:
+    print('power on or hard reset')
+
+# connect to EPS wifi
 do_connect('pi-2_4','R@spberryP!3')
 # http_post('https://four11.eastsideprep.org/epsnet/form_debug', 'login=msudo&temp=20&humidity=59')
