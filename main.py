@@ -1,7 +1,9 @@
 import dht, machine, time
 SLEEP_DURATION_MINS = 10
 MOTION_DURATION_MS = 20000
-MEASURE_BATTERY = False
+MEASURE_BATTERY = True
+ENABLE_BLINK = False
+PIR_POWER_INIT_WAIT_SECS = 60
 
 # use functions from boot.py
 
@@ -30,10 +32,20 @@ def motion_detected(duration_ms):
 
 # blink test
 # gives some time to intercept if needed
-blink(500, 10)
+# NEW: PIR sensor requires 1 minute to initialize from power on
+# so blink for 1 minute (6 times every 10 seconds)
+
+print("pause for",PIR_POWER_INIT_WAIT_SECS, "seconds to power initialize pir sensor...")
+for i in range(PIR_POWER_INIT_WAIT_SECS):
+    if ENABLE_BLINK:
+        blink(100, 1)
+        time.sleep_ms(1000-200)
+    else:
+        time.sleep_ms(1000)
 
 # 1
-blink(500, 1)
+if ENABLE_BLINK:
+    blink(500, 1)
 # get temp and humidity
 dht_sensor = dht.DHT11(machine.Pin(4))
 dht_sensor.measure()
@@ -43,7 +55,9 @@ print("temp:", temp)
 print("humdity:", humidity)
 
 # 2
-blink(500, 2)
+if ENABLE_BLINK:
+    time.sleep_ms(1000)
+    blink(500, 2)
 # get battery level or light sensor level (0-100)
 mapped_battery = 0
 mapped_light_brightness = 0
@@ -57,7 +71,9 @@ print("battery:", mapped_battery)
 print("light_brightness:", mapped_light_brightness)
 
 #3
-blink(500, 3)
+if ENABLE_BLINK:
+    time.sleep_ms(1000)
+    blink(500, 3)
 # get motion from pir sensor
 # Read motion sensor for x seconds
 # return true if motion is detected during that time
@@ -66,13 +82,16 @@ motion_str = ""
 if motion_detected(MOTION_DURATION_MS):
     print("motion detected in", str(MOTION_DURATION_MS), "ms")
     motion_str = "&motionDetected in " + str(MOTION_DURATION_MS) + "ms: True"
-    blink(200, 3)
+    if ENABLE_BLINK:
+        blink(200, 3)
 else:
     print("motion NOT detected in", str(MOTION_DURATION_MS), "ms")
     motion_str = "&motionDetected in " + str(MOTION_DURATION_MS) + "ms: False"
 
 #4
-blink(500, 4)
+if ENABLE_BLINK:
+    time.sleep_ms(1000)
+    blink(500, 4)
 # print
 print("data to send to database")
 print("temp: ", temp, "C")
@@ -83,8 +102,10 @@ print("deep sleep duration (mins)", SLEEP_DURATION_MINS)
 data_string = "login=msudo" + "&temperature(c)=" + str(temp) + "&humidity(percent)=" + str(humidity) + "&batteryLevel(percent)=" + str(mapped_battery) + "&deepSleepDuration(minutes)=" + str(SLEEP_DURATION_MINS) + "&lightBrightness(percent)=" + str(mapped_light_brightness) + motion_str
 print("data sent to four11: " + data_string)
 http_post_four11(data_string)
+
 # blink 5 times to indicate send activity
-blink(200,5)
+if ENABLE_BLINK:
+    blink(200,5)
 
 # send data every x minutes
 print("entering deep sleep for", SLEEP_DURATION_MINS, "minutes")
