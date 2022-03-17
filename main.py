@@ -1,9 +1,11 @@
 import dht, machine, time
-SLEEP_DURATION_MINS = 10
+SLEEP_DURATION_MINS = 59
 MOTION_DURATION_MS = 20000
 MEASURE_BATTERY = True
 ENABLE_BLINK = False
-PIR_POWER_INIT_WAIT_SECS = 60
+PIR_POWER_INIT_WAIT_SECS = 0
+BATTERY_MAX_ADC = 820  # was 794 per spec, but not reality
+BATTERY_MIN_ADC = 580
 
 # use functions from boot.py
 
@@ -59,10 +61,16 @@ if ENABLE_BLINK:
     time.sleep_ms(1000)
     blink(500, 2)
 # get battery level or light sensor level (0-100)
+# read the battery level from the ESP8266 analog in pin.
+# analog read level is 10 bit 0-1023 (0V-1V).
+# our 1M & 220K voltage divider takes the max
+# lipo value of 4.2V and drops it to 0.758V max.
+# this means our min analog read value should be 580 (3.14V)
+# and the max analog read value should be 774 (4.2V).
 mapped_battery = 0
 mapped_light_brightness = 0
 if MEASURE_BATTERY:
-    mapped_battery = adc_read_map(580, 774)
+    mapped_battery = adc_read_map(BATTERY_MIN_ADC, BATTERY_MAX_ADC)
     mapped_light_brightness = -1
 else:
     mapped_battery = -1
