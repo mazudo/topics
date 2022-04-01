@@ -106,7 +106,7 @@ if sound_or_motion_detected(SOUND_DURATION_MS, 12):
         blink(200, 3)
 else:
     print("sound NOT detected in", str(MOTION_DURATION_MS), "ms")
-    motion_str = "&soundDetected in " + str(MOTION_DURATION_MS) + "ms: False"
+    sound_str = "&soundDetected in " + str(MOTION_DURATION_MS) + "ms: False"
 
 #5
 if ENABLE_BLINK:
