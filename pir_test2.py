@@ -9,7 +9,7 @@ def motion_detected(duration_ms):
     # no motion
     return False
 
-if motion_detected(5000):
-    print("found motion in 5 seconds!")
+if motion_detected(10000):
+    print("found motion in 10 seconds!")
 else:
-    print("no motion found in 5 seconds")
+    print("no motion found in 10 seconds")

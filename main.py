@@ -1,7 +1,8 @@
 import dht, machine, time
-SLEEP_DURATION_MINS = 59
-MOTION_DURATION_MS = 20000
-MEASURE_BATTERY = True
+SLEEP_DURATION_MINS = 10
+MOTION_DURATION_MS = 30000
+SOUND_DURATION_MS = 30000
+MEASURE_BATTERY = False
 ENABLE_BLINK = False
 PIR_POWER_INIT_WAIT_SECS = 0
 BATTERY_MAX_ADC = 820  # was 794 per spec, but not reality
@@ -11,17 +12,12 @@ BATTERY_MIN_ADC = 580
 
 # local functions
 
-# maps adc values to 0 to 100 (percentalge)
-# min/max ADC -> mapped to 0 to 100%
-def adc_read_map(minADC, maxADC):
-    raw = adc_read()
-    mapped = map(raw, minADC, maxADC, 0, 100)
-    return mapped
+
 
 # returns true if motion is detected with specified duration
-def motion_detected(duration_ms):
+def sound_or_motion_detected(duration_ms, pin_num):
     # wire pir data pin to gpio 14
-    pir = machine.Pin(14, machine.Pin.IN)
+    pir = machine.Pin(pin_num, machine.Pin.IN)
 
     # start timer and check for motion
     start = time.ticks_ms()
@@ -72,7 +68,7 @@ mapped_light_brightness = 0
 if MEASURE_BATTERY:
     mapped_battery = adc_read_map(BATTERY_MIN_ADC, BATTERY_MAX_ADC)
     mapped_light_brightness = -1
-else:
+else: # light sensor instead
     mapped_battery = -1
     mapped_light_brightness = adc_read_map(0, 1024)
 print("battery:", mapped_battery)
@@ -87,7 +83,7 @@ if ENABLE_BLINK:
 # return true if motion is detected during that time
 print("checking for motion for", MOTION_DURATION_MS, "milliseconds...")
 motion_str = ""
-if motion_detected(MOTION_DURATION_MS):
+if sound_or_motion_detected(MOTION_DURATION_MS, 14):
     print("motion detected in", str(MOTION_DURATION_MS), "ms")
     motion_str = "&motionDetected in " + str(MOTION_DURATION_MS) + "ms: True"
     if ENABLE_BLINK:
@@ -100,14 +96,33 @@ else:
 if ENABLE_BLINK:
     time.sleep_ms(1000)
     blink(500, 4)
+# get sound sensor
+print("checking for sound for", SOUND_DURATION_MS, "milliseconds...")
+sound_str = ""
+if sound_or_motion_detected(SOUND_DURATION_MS, 12):
+    print("sound detected in", str(SOUND_DURATION_MS), "ms")
+    sound_str = "&soundDetected in " + str(SOUND_DURATION_MS) + "ms: True"
+    if ENABLE_BLINK:
+        blink(200, 3)
+else:
+    print("sound NOT detected in", str(MOTION_DURATION_MS), "ms")
+    motion_str = "&soundDetected in " + str(MOTION_DURATION_MS) + "ms: False"
+
+#5
+if ENABLE_BLINK:
+    time.sleep_ms(1000)
+    blink(500, 4)
 # print
 print("data to send to database")
 print("temp: ", temp, "C")
 print("humidity: ", humidity, "%")
 print("battery: ", mapped_battery, "%")
+print("light: ", mapped_light_brightness, "%")
+print("motion: ", motion_str)
+print("sound: ", sound_str)
 print("deep sleep duration (mins)", SLEEP_DURATION_MINS)
 # send data to four11 via http post
-data_string = "login=msudo" + "&temperature(c)=" + str(temp) + "&humidity(percent)=" + str(humidity) + "&batteryLevel(percent)=" + str(mapped_battery) + "&deepSleepDuration(minutes)=" + str(SLEEP_DURATION_MINS) + "&lightBrightness(percent)=" + str(mapped_light_brightness) + motion_str
+data_string = "login=msudo" + "&temperature(c)=" + str(temp) + "&humidity(percent)=" + str(humidity) + "&batteryLevel(percent)=" + str(mapped_battery) + "&deepSleepDuration(minutes)=" + str(SLEEP_DURATION_MINS) + "&lightBrightness(percent)=" + str(mapped_light_brightness) + motion_str + sound_str
 print("data sent to four11: " + data_string)
 http_post_four11(data_string)
 

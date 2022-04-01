@@ -13,12 +13,41 @@ gc.collect()
 def map(x, i_m, i_M, o_m, o_M):
     return max(min(o_M, (x - i_m) * (o_M - o_m) // (i_M - i_m) + o_m), o_m)
 
+# adafruit's implementation of map()
+def map_range(x, in_min, in_max, out_min, out_max):
+    """
+    Maps a number from one range to another.
+    Note: This implementation handles values < in_min differently than arduino's map function does.
+    :return: Returns value mapped to new range
+    :rtype: float
+    """
+    in_range = in_max - in_min
+    in_delta = x - in_min
+    if in_range != 0:
+        mapped = in_delta / in_range
+    elif in_delta != 0:
+        mapped = in_delta
+    else:
+        mapped = 0.5
+    mapped *= out_max - out_min
+    mapped += out_min
+    if out_min <= out_max:
+        return max(min(mapped, out_max), out_min)
+    return min(max(mapped, out_max), out_min)
+
 # read and return ADC pin reading
 def adc_read():
     adc = ADC(0)
     val = adc.read()
     print("analong pin A0: ", val)
     return val
+
+# maps adc values to 0 to 100 (percentalge)
+# min/max ADC -> mapped to 0 to 100%
+def adc_read_map(minADC, maxADC):
+    raw = adc_read()
+    mapped = map_range(raw, minADC, maxADC, 0, 100)
+    return mapped
 
 # connect to eps wifi
 def do_connect(ssid, pwd):
@@ -93,6 +122,7 @@ def deep_sleep(delay_ms):
 
 
 # print out reset cause
+print("")
 if machine.reset_cause() == machine.DEEPSLEEP_RESET:
     print('woke from a deep sleep')
 else:
