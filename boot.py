@@ -119,7 +119,19 @@ def deep_sleep(delay_ms):
     # put the device to sleep
     machine.deepsleep()
 
+# returns true if signal is detected with specified duration
+def signal_detected(duration_ms, pin_num):
+    # gpio digital input to check
+    sensor = machine.Pin(pin_num, machine.Pin.IN)
 
+    # start timer and check for signal
+    start = time.ticks_ms()
+    while time.ticks_diff(time.ticks_ms(), start) < duration_ms:
+        # signal detected!
+        if sensor.value() == 1:
+            return True
+    # no signal
+    return False
 
 # print out reset cause
 print("")

@@ -1,5 +1,5 @@
 import dht, machine, time
-SLEEP_DURATION_MINS = 10
+SLEEP_DURATION_MINS = 60
 MOTION_DURATION_MS = 30000
 SOUND_DURATION_MS = 30000
 MEASURE_BATTERY = False
@@ -12,21 +12,6 @@ BATTERY_MIN_ADC = 580
 
 # local functions
 
-
-
-# returns true if motion is detected with specified duration
-def sound_or_motion_detected(duration_ms, pin_num):
-    # wire pir data pin to gpio 14
-    pir = machine.Pin(pin_num, machine.Pin.IN)
-
-    # start timer and check for motion
-    start = time.ticks_ms()
-    while time.ticks_diff(time.ticks_ms(), start) < duration_ms:
-        # motion detected!
-        if pir.value() == 1:
-            return True
-    # no motion
-    return False
 
 # blink test
 # gives some time to intercept if needed
@@ -83,7 +68,7 @@ if ENABLE_BLINK:
 # return true if motion is detected during that time
 print("checking for motion for", MOTION_DURATION_MS, "milliseconds...")
 motion_str = ""
-if sound_or_motion_detected(MOTION_DURATION_MS, 14):
+if signal_detected(MOTION_DURATION_MS, 14):
     print("motion detected in", str(MOTION_DURATION_MS), "ms")
     motion_str = "&motionDetected in " + str(MOTION_DURATION_MS) + "ms: True"
     if ENABLE_BLINK:
@@ -99,7 +84,7 @@ if ENABLE_BLINK:
 # get sound sensor
 print("checking for sound for", SOUND_DURATION_MS, "milliseconds...")
 sound_str = ""
-if sound_or_motion_detected(SOUND_DURATION_MS, 12):
+if signal_detected(SOUND_DURATION_MS, 12):
     print("sound detected in", str(SOUND_DURATION_MS), "ms")
     sound_str = "&soundDetected in " + str(SOUND_DURATION_MS) + "ms: True"
     if ENABLE_BLINK:
