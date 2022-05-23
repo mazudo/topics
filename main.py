@@ -1,4 +1,5 @@
-import dht, machine, time
+import dht
+import machine, time
 SLEEP_DURATION_MINS = 60
 MOTION_DURATION_MS = 30000
 SOUND_DURATION_MS = 30000
@@ -68,9 +69,11 @@ if ENABLE_BLINK:
 # return true if motion is detected during that time
 print("checking for motion for", MOTION_DURATION_MS, "milliseconds...")
 motion_str = ""
+motion = 0
 if signal_detected(MOTION_DURATION_MS, 14):
     print("motion detected in", str(MOTION_DURATION_MS), "ms")
     motion_str = "&motionDetected in " + str(MOTION_DURATION_MS) + "ms: True"
+    motion = 1
     if ENABLE_BLINK:
         blink(200, 3)
 else:
@@ -84,9 +87,11 @@ if ENABLE_BLINK:
 # get sound sensor
 print("checking for sound for", SOUND_DURATION_MS, "milliseconds...")
 sound_str = ""
+sound = 0
 if signal_detected(SOUND_DURATION_MS, 12):
     print("sound detected in", str(SOUND_DURATION_MS), "ms")
     sound_str = "&soundDetected in " + str(SOUND_DURATION_MS) + "ms: True"
+    sound = 1
     if ENABLE_BLINK:
         blink(200, 3)
 else:
@@ -108,8 +113,20 @@ print("sound: ", sound_str)
 print("deep sleep duration (mins)", SLEEP_DURATION_MINS)
 # send data to four11 via http post
 data_string = "login=msudo" + "&temperature(c)=" + str(temp) + "&humidity(percent)=" + str(humidity) + "&batteryLevel(percent)=" + str(mapped_battery) + "&deepSleepDuration(minutes)=" + str(SLEEP_DURATION_MINS) + "&lightBrightness(percent)=" + str(mapped_light_brightness) + motion_str + sound_str
-print("data sent to four11: " + data_string)
 http_post_four11(data_string)
+print("data sent to four11: " + data_string)
+
+# send data to datalogger
+username = "msudo"
+device_id = "huzzah1"
+area = "3d-printer"
+water_level = 1.2
+vibration = 0
+tilt = 0
+datalogger_url_string = "https://eps-datalogger.herokuapp.com/api/data/" + username + "/add?device_id=" + device_id + "&temperature=" + str(temp) + "&area=" + area + "&battery=" + str(mapped_battery) + "&light" + str(mapped_light_brightness) + "&water_level=" + str(water_level) + "&humidity=" + str(humidity) + "&motion=" + str(motion) + "&sound=" + str(sound) + "&vibration=" + str(vibration) + "&tilt=" + str(tilt)
+
+http_post(datalogger_url_string, "")
+print("data sent to datalogger:", datalogger_url_string)
 
 # blink 5 times to indicate send activity
 if ENABLE_BLINK:
