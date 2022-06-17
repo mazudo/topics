@@ -6,4 +6,5 @@ secrets = {
     "password": "R@spberryP!3",
     "aio_username": "mazudo",
     "aio_key": "50827ddaac201349c9c6a02e163d45552d9d4f82",
+    "timezone" : "America/Los_Angeles", # http://worldtimeapi.org/timezones
 }
