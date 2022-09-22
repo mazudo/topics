@@ -35,67 +35,72 @@ df = df.dropna(subset=['battery','humidity','temperature','string1'])
 
 # panads .loc()
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.loc.html
-print("reading specific rows and columns")
-print(df.loc[:,['battery','humidity', 'temperature', 'string1']])
+#print("reading specific rows and columns")
+#print(df.loc[:,['battery','humidity', 'temperature', 'string1']])
+
 
 
 print("queried df")
 #df2 = df.query("area == '3d-printer' and temperature >= 22.0 and string1.str.contains('2022-06-21')")
-# query: 3dprinter, temp >= 22.0, date range, MDT not included
-df2 = df.query("area == '3d-printer'\
-    and string1 >= '2022-06-21 00:00:00.000' and string1 <= '2022-06-22 00:00:00.000'\
-    and not string1.str.contains('MDT')")
+# query: 3dprinter, temp >= 22.0, date range
+df2 = df.query("area == '3d-printer' and device_id == 'feather2'\
+    and string1 >= '2022-06-21 00:00:00.000' and string1 <= '2022-06-22 00:00:00.000'")
+    # and not string1.str.contains('MDT')")
+print("feather2 data")
 print(df2.loc[:,['light', 'water_level', 'humidity', 'temperature', 'sound', 'string1']])
 
-# investigate light and sound
-df_light = df.query("light > 0.0")
-print("light non-zero")
-print(df_light.loc[:,['light','string1']])
-df_sound_off = df.query("sound == 0.0")
-print("sound off")
-print(df_sound_off.loc[:,['sound','string1']])
-df_sound_on = df.query("sound == 1.0")
-print("sound on")
-print(df_sound_on.loc[:,['sound','string1']])
+feather1_df = df.query("area == '3d-printer' and device_id == 'feather1'\
+    and string1 >= '2022-06-21 00:00:00.000' and string1 <= '2022-06-22 00:00:00.000'")
+    # and not string1.str.contains('MDT')")
+print("feather1 data:")
+print(feather1_df.loc[:,['light', 'water_level', 'humidity', 'temperature', 'sound', 'string1']])
 
-# multiple graphs
-# figsize in inches
-figure, axis = plt.subplots(2,3, figsize=(10,7))
+def draw_multiple_graphs(num_rows):
 
-# plot temp
-range = 10
-# x_plot = df2.loc[:range,'string1']
-# y_plot = df2.loc[:range,'temperature']
-x_temp = df2.iloc[:range,14]
-y_temp = df2.iloc[:range,9]
-axis[0,0].set_title("temperature over time")
-axis[0,0].plot(x_temp,y_temp)
+    # multiple graphs
+    # figsize in inches
+    figure, axis = plt.subplots(2,3, figsize=(20,7))
 
-# plot humidity
-# x_hum = df2.loc[:range,'string1']
-# y_hum = df2.loc[:range,'humidity']
-x_hum = df2.iloc[:range,14]
-y_hum = df2.iloc[:range,8]
-axis[0,1].set_title("humidity over time")
-axis[0,1].plot(x_hum,y_hum)
+    # plot temp
+    range = num_rows
+    # x_plot = df2.loc[:range,'string1']
+    # y_plot = df2.loc[:range,'temperature']
+    x_temp = df2.iloc[:range,14]
+    y_temp = df2.iloc[:range,9]
+    x1_temp = feather1_df.iloc[:range,14]
+    y1_temp = feather1_df.iloc[:range,9]
+    axis[0,0].set_title("temperature over time")
+    axis[0,0].plot(x_temp,y_temp, label="feather2")
+    axis[0,0].plot(x1_temp,y1_temp, label="feather1")
+    plt.legend()
 
-# plot light
-x_light = df2.iloc[:range,14]
-y_light = df2.iloc[:range,6]
-axis[0,2].set_title("light over time")
-axis[0,2].plot(x_light,y_light)
+    # plot humidity
+    # x_hum = df2.loc[:range,'string1']
+    # y_hum = df2.loc[:range,'humidity']
+    x_hum = df2.iloc[:range,14]
+    y_hum = df2.iloc[:range,8]
+    axis[0,1].set_title("humidity over time")
+    axis[0,1].plot(x_hum,y_hum)
 
-# plot water
-x_water = df2.iloc[:range,14]
-y_water = df2.iloc[:range,7]
-axis[1,0].set_title("water level over time")
-axis[1,0].plot(x_water,y_water)
+    # plot light
+    x_light = df2.iloc[:range,14]
+    y_light = df2.iloc[:range,6]
+    axis[0,2].set_title("light over time")
+    axis[0,2].plot(x_light,y_light)
 
-# plot sound
-x_sound = df2.iloc[:range,14]
-y_sound = df2.iloc[:range,11]
-axis[1,1].set_title("sound over time")
-axis[1,1].plot(x_sound,y_sound)
+    # plot water
+    x_water = df2.iloc[:range,14]
+    y_water = df2.iloc[:range,7]
+    axis[1,0].set_title("water level over time")
+    axis[1,0].plot(x_water,y_water)
 
-#plt.tight_layout()
-plt.show()
+    # plot sound
+    x_sound = df2.iloc[:range,14]
+    y_sound = df2.iloc[:range,11]
+    axis[1,1].set_title("sound over time")
+    axis[1,1].plot(x_sound,y_sound)
+
+    #plt.tight_layout()
+    plt.show()
+
+draw_multiple_graphs(5)
