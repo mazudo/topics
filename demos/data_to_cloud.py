@@ -1,3 +1,6 @@
+# required - secrets.py file in same directory as this file with login information to pi-2_4
+# DO NOT publish secret.py to anywhere public, like github!
+
 import board
 import digitalio
 import time
